@@ -1,6 +1,7 @@
 package com.crudadvancedmapping.crudadvancedmapping;
 
 import com.crudadvancedmapping.crudadvancedmapping.dao.AppDao;
+import com.crudadvancedmapping.crudadvancedmapping.entity.Course;
 import com.crudadvancedmapping.crudadvancedmapping.entity.Instructor;
 import com.crudadvancedmapping.crudadvancedmapping.entity.InstructorDetail;
 import org.springframework.boot.CommandLineRunner;
@@ -8,6 +9,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.util.List;
+
+///Default relations fetch types
+//@OneToOne is EAGER
+//@OneToMany is LAZY
+//@ManyToOne is EAGER
+//@ManyToMany is LAZY
 @SpringBootApplication
 public class CrudadvancedmappingApplication {
 
@@ -21,9 +29,61 @@ public class CrudadvancedmappingApplication {
 			//createInstructor(appDao);
 			//findInstructor(appDao);
 			//deleteInstructor(appDao);
-			findInstructorDetails(appDao);
+			//findInstructorDetails(appDao);
 			//deleteInstructorDetails(appDao);
+
+			//createInstructorWithCourse(appDao);
+
+			//findInstructorCourses(appDao);
+			//findCourseInstructor(appDao);
+			findInstructorWithCourse(appDao);
+
 		};
+	}
+
+	private void findCourseInstructor(AppDao appDao) {
+		int theCourseId = 10;
+		Instructor instructor = appDao.findCourseInstructor(theCourseId);
+		System.out.print("instructor is: "+instructor);
+	}
+
+	private void findInstructorCourses(AppDao appDao) {
+		int instructorId = 1;
+		List<Course> courses = appDao.findCoursesByInstructorId(instructorId);
+		System.out.print("courses is: "+courses);
+	}
+
+	private void findInstructorWithCourse(AppDao appDao) {
+		int theId = 1;
+		Instructor instructor = appDao.findInstructorByIdJoinFetch(theId);
+		System.out.print(instructor);
+		System.out.print("instructor details: "+instructor.getInstructorDetail());
+	}
+
+	private void createInstructorWithCourse(AppDao appDao) {
+		Instructor instructor = new Instructor(
+				"Mohammed",
+				"Ahmed",
+				"moh@gmail.com"
+		);
+		InstructorDetail instructorDetail = new InstructorDetail(
+				"youtube.channel.mohammed.com",
+				"Game!"
+		);
+		instructor.setInstructorDetail(instructorDetail);
+
+		//add course
+		Course course = new Course("Java Spring");
+		Course course2 = new Course("Java Spring Advanced");
+
+		instructor.addCourse(course);
+		instructor.addCourse(course2);
+
+		appDao.saveInstructor(instructor);
+
+		System.out.print("\nDone Save Instructor!! " + instructor);
+		System.out.print("The Instructor " + instructor.getFirstName() + " courses is: "+instructor.getCourses());
+
 	}
 
 	private void deleteInstructorDetails(AppDao appDao) {
