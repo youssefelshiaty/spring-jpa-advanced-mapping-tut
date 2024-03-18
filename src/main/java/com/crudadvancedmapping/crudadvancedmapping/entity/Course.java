@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "course")
 @NoArgsConstructor
@@ -24,7 +27,33 @@ public class Course {
     @ToString.Exclude
     private Instructor instructor;
 
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinColumn(name = "course_id")
+    private List<Review> reviews;
+
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {CascadeType.DETACH,CascadeType.REFRESH,CascadeType.PERSIST,CascadeType.MERGE})
+    @JoinTable(
+            name = "course_student",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns =@JoinColumn(name = "student_id")
+    )
+    private List<Student> students;
     public Course(String title) {
         this.title = title;
+    }
+
+    public void addReview(Review review){
+        if(reviews==null){
+            reviews = new ArrayList<>();
+        }
+        reviews.add(review);
+    }
+
+    public void addStudent(Student student){
+        if(students==null){
+            students = new ArrayList<>();
+        }
+        students.add(student);
     }
 }

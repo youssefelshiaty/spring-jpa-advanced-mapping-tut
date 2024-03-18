@@ -3,6 +3,7 @@ package com.crudadvancedmapping.crudadvancedmapping.dao;
 import com.crudadvancedmapping.crudadvancedmapping.entity.Course;
 import com.crudadvancedmapping.crudadvancedmapping.entity.Instructor;
 import com.crudadvancedmapping.crudadvancedmapping.entity.InstructorDetail;
+import com.crudadvancedmapping.crudadvancedmapping.entity.Student;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
@@ -36,11 +37,15 @@ public class AppDaoImpl implements AppDao {
 
     @Override
     @Transactional
-    public void deleteInstructorById(int id) {
-        Instructor dbinstructor = findInstructorById(id);
-        if (dbinstructor == null) return;
-        //This will delete also the InstructorDetails record as we define cascade type .ALL
-        entityManager.remove(dbinstructor);
+    public void removeInstructor(int id) {
+        Instructor dbInstructor = findInstructorById(id);
+
+        List<Course> courses = dbInstructor.getCourses();
+        for (Course course : courses) {
+            course.setInstructor(null);
+        }
+
+        entityManager.remove(dbInstructor);
     }
 
     @Override
@@ -89,5 +94,76 @@ public class AppDaoImpl implements AppDao {
         );
         query.setParameter("data", id);
         return query.getSingleResult();
+    }
+
+    @Override
+    @Transactional
+    public void updateInstructor(Instructor instructor) {
+        entityManager.merge(instructor);
+    }
+
+    @Override
+    @Transactional
+    public void updateCourse(Course course) {
+        entityManager.merge(course);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCourse(int id) {
+        Course dbCourse = findCourseById(id);
+        entityManager.remove(dbCourse);
+    }
+
+    @Override
+    @Transactional
+    public void saveCourse(Course course) {
+        entityManager.persist(course);
+    }
+
+    @Override
+    public Course findCourseWithReviews(int id) {
+        TypedQuery<Course> query = entityManager.createQuery(
+                "select c from Course c "
+                        + "JOIN FETCH c.reviews "
+                        + "WHERE c.id = :data", Course.class
+        );
+
+        query.setParameter("data", id);
+
+        return query.getSingleResult();
+
+        //this is for find course with it's all reviews , and the get the reviews by join fetch
+    }
+
+    @Override
+    public Course findCourseAndStudentsByCourseId(int id) {
+        TypedQuery<Course> query = entityManager.createQuery(
+                "select c from Course c "
+                        + "JOIN FETCH c.students "
+                        + "WHERE c.id = :data", Course.class
+        );
+
+        query.setParameter("data", id);
+
+        return query.getSingleResult();
+    }
+    @Override
+    public Student findStudentAndCoursesByStudentId(int id) {
+        TypedQuery<Student> query = entityManager.createQuery(
+                "select s from Student s "
+                        + "JOIN FETCH s.courses "
+                        + "WHERE s.id = :data", Student.class
+        );
+
+        query.setParameter("data", id);
+
+        return query.getSingleResult();
+    }
+
+    @Override
+    @Transactional
+    public void updateStudent(Student student) {
+        entityManager.merge(student);
     }
 }
